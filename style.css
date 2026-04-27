@@ -264,6 +264,59 @@ main p {
     color: #fff;
 }
 
+    .button-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .withdraw-btn {
+        background: #4a5568;
+    }
+
+    .withdraw-btn:hover {
+        background: #2d3748;
+    }
+
+    @media (max-width: 720px) {
+        .nav-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .nav-links {
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        main {
+            padding: 24px 16px;
+        }
+
+        .card {
+            padding: 22px;
+        }
+
+        .field {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .field input[type="number"] {
+            width: 100%;
+        }
+
+        .save-btn {
+            width: 100%;
+        }
+
+        .button-row {
+            flex-direction: column;
+        }
+    }
+
 .bars {
     display: flex;
     align-items: flex-end;
@@ -273,6 +326,7 @@ main p {
 }
 
 .bar-col {
+
     flex: 1;
     display: flex;
     flex-direction: column;

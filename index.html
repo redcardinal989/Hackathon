@@ -16,19 +16,27 @@
     </nav>
 
     <main>
-        <br>
-        <br>
-        <br>
-        <br>
         <h1>MunchCheck</h1>
-        
-        <div class="wallet-container">
-            <div class="balance-display">
-                <p>Current Cash</p>
-                <h2 id="balance-amount">$0.00</h2>
-                <p id="credit-status">Credit Status: Ready to Munch</p>
+
+        <div class="card">
+            <div class="card-label">Current Budget</div>
+            <div class="wallet-container">
+                <div class="balance-display">
+                    <p>Current Cash</p>
+                    <h2 id="balance-amount">$0.00</h2>
+                    <p id="credit-status">Credit Status: Ready to Munch</p>
+                </div>
+            </div>
+            <div class="field">
+                <label for="add-amount">Amount</label>
+                <input type="number" id="add-amount" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="button-row">
+                <button class="save-btn" id="add-money-btn">Add Money</button>
+                <button class="save-btn withdraw-btn" id="withdraw-money-btn">Withdraw</button>
             </div>
         </div>
+
         <hr>
 
         <section id="munch-list">
@@ -36,6 +44,8 @@
             <div id="food-container"></div>
         </section>
     </main>
+
+    <div class="toast" id="toast"></div>
 
     <script type="module" src="animation.js"></script>
     <script src="script.js"></script>

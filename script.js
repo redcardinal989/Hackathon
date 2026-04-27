@@ -1,148 +1,142 @@
-// MunchCheck Tab Logic
+const STORAGE_BUDGET = 'munchBudget';
+const STORAGE_HISTORY = 'munchDailyBudget';
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function getDayKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function loadBudget() {
+    return parseFloat(localStorage.getItem(STORAGE_BUDGET)) || 0;
+}
+
+function saveBudget(amount) {
+    localStorage.setItem(STORAGE_BUDGET, amount.toFixed(2));
+    saveTodayHistory(amount);
+}
+
+function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_HISTORY) || '{}'); }
+    catch { return {}; }
+}
+
+function saveHistory(history) {
+    localStorage.setItem(STORAGE_HISTORY, JSON.stringify(history));
+}
+
+function saveTodayHistory(amount) {
+    const history = loadHistory();
+    history[getDayKey()] = amount;
+    saveHistory(history);
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+function updateBalanceDisplay() {
+    const balanceEl = document.getElementById('balance-amount');
+    if (!balanceEl) return;
+    balanceEl.innerText = `$${loadBudget().toFixed(2)}`;
+}
+
 async function loadAndFilter() {
-    // Grab the budget saved from the Calculator tab
-    const savedBudget = parseFloat(localStorage.getItem('munchBudget')) || 0;
-    
-    // Update the UI header
-    document.getElementById('balance-amount').innerText = `$${savedBudget.toFixed(2)}`;
+    const balanceEl = document.getElementById('balance-amount');
+    if (balanceEl) updateBalanceDisplay();
+
+    const container = document.getElementById('food-container');
+    if (!container) return;
+
+    const savedBudget = loadBudget();
+    container.innerHTML = '';
 
     try {
         const response = await fetch('food.json');
         const foodData = await response.json();
-        
-        const container = document.getElementById('food-container');
-        container.innerHTML = '';
-
-        // The Affordability Filter
         const safeOptions = foodData.filter(item => item.price <= savedBudget);
 
         if (safeOptions.length === 0) {
-            container.innerHTML = "<p>Nothing affordable. Check the Budget Calculator!</p>";
-        } else {
-            safeOptions.forEach(food => {
-                const div = document.createElement('div');
-                div.className = 'food-card';
-                div.innerHTML = `
-                    <div class="food-info">
-                        <strong>${food.item}</strong> - ${food.name}<br>
-                        <small>📍 ${food.dist} away</small>
-                    </div>
-                    <div class="price">$${food.price.toFixed(2)}</div>
-                `;
-                div.addEventListener('click', () => {
-                    const currentBudget = parseFloat(localStorage.getItem('munchBudget')) || 0;
-                    if (currentBudget >= food.price) {
-                        const newBudget = currentBudget - food.price;
-                        localStorage.setItem('munchBudget', newBudget);
-                        document.getElementById('balance-amount').innerText = `$${newBudget.toFixed(2)}`;
-                        alert(`Purchased ${food.item} for $${food.price.toFixed(2)}!`);
-                        loadAndFilter(); // Refresh the list
-                    } else {
-                        alert('Insufficient funds!');
-                    }
-                });
-                container.appendChild(div);
-            });
+            container.innerHTML = '<p>Nothing affordable. Check the Budget Calculator!</p>';
+            return;
         }
-    } catch (e) {
-        console.error("Error loading food:", e);
+
+        safeOptions.forEach(food => {
+            const div = document.createElement('div');
+            div.className = 'food-card';
+            div.innerHTML = `
+                <div class="food-info">
+                    <strong>${food.item}</strong> - ${food.name}<br>
+                    <small>📍 ${food.dist} away</small>
+                </div>
+                <div class="price">$${food.price.toFixed(2)}</div>
+            `;
+
+            div.addEventListener('click', () => {
+                const currentBudget = loadBudget();
+                if (currentBudget >= food.price) {
+                    const newBudget = currentBudget - food.price;
+                    saveBudget(newBudget);
+                    updateBalanceDisplay();
+                    if (document.getElementById('final-budget')) {
+                        document.getElementById('final-budget').innerText = `$${newBudget.toFixed(2)}`;
+                    }
+                    showToast(`Purchased ${food.item} for $${food.price.toFixed(2)}.`);
+                    loadAndFilter();
+                } else {
+                    showToast('Insufficient funds!');
+                }
+            });
+
+            container.appendChild(div);
+        });
+    } catch (error) {
+        console.error('Error loading food:', error);
+        container.innerHTML = '<p>Could not load munch options.</p>';
     }
 }
 
-loadAndFilter();
+function calculateBudget() {
+    const totalCash = document.getElementById('total-cash');
+    const finalBudget = document.getElementById('final-budget');
+    if (!totalCash || !finalBudget) return 0;
 
-// Calculator page logic
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function getDayKey(date = new Date()) {
-    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-}
-
-function loadHistory() {
-    try { return JSON.parse(localStorage.getItem('munchDailySpend') || '{}'); }
-    catch { return {}; }
-}
-
-function saveHistory(h) { localStorage.setItem('munchDailySpend', JSON.stringify(h)); }
-
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    if (t) {
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 2600);
-    }
-}
-
-function calculate() {
-    const cashInput = document.getElementById('total-cash');
-    const travelInput = document.getElementById('travel-cost');
-    const otherInput = document.getElementById('other-cost');
-    const finalDisplay = document.getElementById('final-budget');
-    
-    const cash = parseFloat(cashInput?.value) || 0;
-    const travel = parseFloat(travelInput?.value) || 0;
-    const other = parseFloat(otherInput?.value) || 0;
-    
-    const total = cash - (travel + other);
-    if (finalDisplay) {
-        finalDisplay.innerText = `$${Math.max(0, total).toFixed(2)}`;
-    }
-    return total;
-}
-
-const inputs = document.querySelectorAll('input[type="number"]');
-const saveBtn = document.getElementById('save-budget');
-
-inputs.forEach(input => input.addEventListener('input', calculate));
-
-if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-        const budget = calculate();
-        localStorage.setItem('munchBudget', budget);
-        
-        const history = loadHistory();
-        const todayKey = getDayKey();
-        history[todayKey] = budget;
-        saveHistory(history);
-        
-        renderChart();
-        showToast("Budget saved! Go back to MunchCheck to see what you can eat.");
-        setTimeout(() => { window.location.href = "index.html"; }, 1800);
-    });
+    const cash = parseFloat(totalCash.value) || 0;
+    finalBudget.innerText = `$${Math.max(0, cash).toFixed(2)}`;
+    return cash;
 }
 
 function renderChart() {
-    const history = loadHistory();
-    const now = new Date();
     const barsContainer = document.getElementById('bars-container');
     const chartSubtitle = document.getElementById('chart-subtitle');
-    
-    if (!barsContainer) return;
+    if (!barsContainer || !chartSubtitle) return;
 
+    const history = loadHistory();
+    const now = new Date();
     const days = [];
+
     for (let i = 6; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(now.getDate() - i);
-        days.push({ key: getDayKey(d), label: DAYS[d.getDay()], isToday: i === 0 });
+        const day = new Date(now);
+        day.setDate(now.getDate() - i);
+        days.push({ key: getDayKey(day), label: DAYS[day.getDay()], isToday: i === 0 });
     }
 
     const values = days.map(d => history[d.key] || 0);
     const max = Math.max(...values, 1);
-    const weekTotal = values.reduce((a, b) => a + b, 0);
+    const weekTotal = values.reduce((sum, value) => sum + value, 0);
 
-    if (chartSubtitle) {
-        chartSubtitle.textContent = weekTotal > 0
-            ? `$${weekTotal.toFixed(2)} budgeted this week`
-            : 'Save a budget to start tracking';
-    }
+    chartSubtitle.textContent = weekTotal > 0
+        ? `$${weekTotal.toFixed(2)} remaining this week`
+        : 'Save a budget to start tracking';
 
     barsContainer.innerHTML = '';
 
     days.forEach(({ key, label, isToday }) => {
         const amount = history[key] || 0;
-        const pct = (amount / max) * 100;
-
+        const height = (amount / max) * 100;
         const col = document.createElement('div');
         col.className = 'bar-col';
         col.innerHTML = `
@@ -155,21 +149,102 @@ function renderChart() {
         barsContainer.appendChild(col);
 
         requestAnimationFrame(() => requestAnimationFrame(() => {
-            col.querySelector('.bar-fill').style.height = pct + '%';
+            col.querySelector('.bar-fill').style.height = `${height}%`;
         }));
     });
 }
 
-const resetBtn = document.getElementById('reset-chart');
-if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-        if (confirm("Clear this week's spending history?")) {
-            localStorage.removeItem('munchDailySpend');
-            renderChart();
-            showToast('History cleared.');
+function initCalculatorPage() {
+    const totalCash = document.getElementById('total-cash');
+    const saveBtn = document.getElementById('save-budget');
+    if (!totalCash || !saveBtn) return;
+
+    const currentBudget = loadBudget();
+    if (currentBudget > 0) {
+        totalCash.value = currentBudget.toFixed(2);
+        calculateBudget();
+    }
+
+    totalCash.addEventListener('input', calculateBudget);
+
+    saveBtn.addEventListener('click', () => {
+        const budget = calculateBudget();
+        if (budget <= 0) {
+            showToast('Enter a budget amount first.');
+            return;
         }
+        saveBudget(budget);
+        renderChart();
+        showToast(`Budget saved! You can spend $${budget.toFixed(2)} on food.`);
+        setTimeout(() => window.location.href = 'index.html', 1800);
+    });
+
+    renderChart();
+}
+
+function initIndexPage() {
+    const addAmount = document.getElementById('add-amount');
+    const addBtn = document.getElementById('add-money-btn');
+    const withdrawBtn = document.getElementById('withdraw-money-btn');
+    if (!addAmount || !addBtn || !withdrawBtn) return;
+
+    updateBalanceDisplay();
+    loadAndFilter();
+
+    addBtn.addEventListener('click', () => {
+        const amount = parseFloat(addAmount.value) || 0;
+        if (amount <= 0) {
+            showToast('Enter an amount to add.');
+            return;
+        }
+
+        const currentBudget = loadBudget();
+        const newBudget = currentBudget + amount;
+        saveBudget(newBudget);
+        updateBalanceDisplay();
+        loadAndFilter();
+        addAmount.value = '';
+        showToast(`Added $${amount.toFixed(2)} to your budget.`);
+    });
+
+    withdrawBtn.addEventListener('click', () => {
+        const amount = parseFloat(addAmount.value) || 0;
+        if (amount <= 0) {
+            showToast('Enter an amount to withdraw.');
+            return;
+        }
+
+        const currentBudget = loadBudget();
+        if (amount > currentBudget) {
+            showToast('Cannot withdraw more than your current budget.');
+            return;
+        }
+
+        const newBudget = currentBudget - amount;
+        saveBudget(newBudget);
+        updateBalanceDisplay();
+        loadAndFilter();
+        addAmount.value = '';
+        showToast(`Withdrew $${amount.toFixed(2)} from your budget.`);
     });
 }
 
-calculate();
-renderChart();
+function initResetChart() {
+    const resetBtn = document.getElementById('reset-chart');
+    if (!resetBtn) return;
+
+    resetBtn.addEventListener('click', () => {
+        if (!confirm("Clear this week's spending history?")) return;
+        localStorage.removeItem(STORAGE_HISTORY);
+        renderChart();
+        showToast('History cleared.');
+    });
+}
+
+function initPage() {
+    initIndexPage();
+    initCalculatorPage();
+    initResetChart();
+}
+
+initPage();

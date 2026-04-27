@@ -4,6 +4,8 @@
   {"name": "Court Square Pizza", "item": "2 Slices", "price": 5.00, "dist": "0.2mi"},
   {"name": "LIC Gourmet Deli", "item": "Bacon, Egg & Cheese Sandwich", "price": 5.00, "dist": "0.2mi"},
   {"name": "Chipotle", "item": "Chicken Bowl", "price": 12.00, "dist": "0.3mi"},
-   {"name": "Chipotle", "item": "Chicken Bowl", "price": 12.00, "dist": "0.3mi"}
+   {"name": "Ramen Spot Made in NY (LIC)", "item": "Gyoza", "price": 11.00, "dist": "0.3mi"},
+   {"name": "Gyu-Kaku Japanese BBQ", "item": "2 BBQ items", "price": 16.00, "dist": "305ft"},
+   {"name": "Trader Joes", "item": "Popcorn ", "price": 2.00, "dist": "0.3mi"}
 
 ]
