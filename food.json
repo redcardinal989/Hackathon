@@ -1,0 +1,7 @@
+[
+  {"name": "Dunkin", "item": "Donut ", "price": 2.00, "dist": "0.1mi"},
+  {"name": "Ai Mart", "item": "Cup of Noodles", "price": 1.50, "dist": "0.2mi"},
+  {"name": "Court Square Pizza", "item": "2 Slices", "price": 5.00, "dist": "0.2mi"},
+  {"name": "LIC Gourmet Deli", "item": "Bacon, Egg & Cheese Sandwich", "price": 5.00, "dist": "0.2mi"},
+  {"name": "Chipotle", "item": "Chicken Bowl", "price": 12.00, "dist": "0.3mi"}
+]

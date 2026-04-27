@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>MunchCheck</title>
+</head>
+<body>
+    <nav class="nav-bar">
+        <div class="nav-logo">MunchCheck</div>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="calculator.html">Budget</a>
+        </div>
+    </nav>
+
+    <main>
+        <br>
+        <br>
+        <br>
+        <br>
+        <h1>MunchCheck</h1>
+        
+        <div class="wallet-container">
+            <div class="balance-display">
+                <p>Current Cash</p>
+                <h2 id="balance-amount">$0.00</h2>
+                <p id="credit-status">Credit Status: Ready to Munch</p>
+            </div>
+        </div>
+        <hr>
+
+        <section id="munch-list">
+            <h3>Available Munches</h3>
+            <div id="food-container"></div>
+        </section>
+    </main>
+
+    <script type="module" src="animation.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
